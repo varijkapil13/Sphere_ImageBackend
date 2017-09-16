@@ -1,0 +1,19 @@
+version: '2'
+services:
+  app:
+    build: .
+    ports:
+      - "8891:5000"
+    links:
+      - redis
+      - mongo
+    volumes:
+      - .:/usr/src/app
+  redis:
+    image: redis
+    volumes:
+      - ./volumes/redisData:/data/db
+  mongo:
+    image: mongo
+    volumes:
+      - ./volumes/mongoData:/data/db
