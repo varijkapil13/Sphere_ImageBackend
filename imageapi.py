@@ -14,7 +14,7 @@ from libraries.image_classification.ValidationClasses import ModelValidation
 from libraries.image_classification.constants import GoldStandardConstants as gsc, \
     ModelMongoConstants as modelConstants, ImageDatasetConstants as imageDatasetConstants
 from libraries.image_classification.utils import Constants, PrintHelper, \
-    DatabaseJSONStructure, DatabaseFunctions, Response, prediction_images_dir, CheckEnvironment
+    DatabaseJSONStructure, DatabaseFunctions, Response, prediction_images_dir, CheckEnvironment, ENVIRONMENT
 
 ROOT_DIR = os.path.dirname(os.path.abspath(os.path.join(__file__, os.pardir, os.pardir)))
 gold_standards_dir = os.path.join(ROOT_DIR, "backend", "data", "resources", "added_gold_standards")
@@ -24,8 +24,7 @@ sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 app = Flask(__name__)
 env = os.environ
 
-# Set "dev" for development or "pro" for production
-ENVIRONMENT = "dev"
+
 
 set_environment = CheckEnvironment(ENVIRONMENT)
 

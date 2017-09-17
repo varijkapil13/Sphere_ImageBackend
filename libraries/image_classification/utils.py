@@ -5,7 +5,6 @@ from bson import ObjectId
 from bson.json_util import dumps
 from flask import jsonify
 from libraries.image_classification.constants import ModelMongoConstants as modelConstants
-from textapi import ENVIRONMENT
 
 '''
 Data Directories
@@ -15,7 +14,8 @@ main_image_data_dir = '/image-downloads/main_image_dataset/'
 train_data_dir = '/image-downloads/training-downloads/images/'
 test_data_dir = '/image-downloads/testing-downloads/images/'
 prediction_images_dir = '/libraries/image_classification/image-downloads/prediction-downloads/'
-
+# Set "dev" for development or "pro" for production
+ENVIRONMENT = "dev"
 
 class CheckEnvironment:
     def __init__(self, environment):
