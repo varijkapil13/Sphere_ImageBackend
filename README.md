@@ -1,4 +1,4 @@
-# mlal-webAPI
+# Sphere- Image Backend
 
 
 ## Requirements
@@ -29,7 +29,7 @@
         virtualenv -p python3 flask
         source flask/bin/activate
         pip3 install -r requirements.txt
-        python3 api.py
+        python3 imageapi.py
     
     You also need to change the server address for MongoDB, redis, and MySQL in utils.py, api.py and utils.py respectively to the address where these instances are hosted.
     
@@ -39,7 +39,7 @@
        
         virtualenv -p python3 flask
         source flask/bin/activate
-        celery worker -A api.celery -l info
+        celery worker -A imageapi.celery -l info
     
 
 (See, it is easier with docker-compose)
@@ -47,4 +47,4 @@
 
 You can then send requests to `http://localhost/sphere/api/v1/...`
 
-See API Endpoints for more details on endpoints
+See imageapi.py for more details on endpoints
