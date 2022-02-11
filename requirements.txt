@@ -40,7 +40,7 @@ peewee==2.10.1
 Pillow==4.1.1
 plac==0.9.6
 preshed==1.0.0
-protobuf==3.3.0
+protobuf==3.15.0
 py==1.4.33
 pymongo==3.4.0
 PyMySQL==0.7.11
