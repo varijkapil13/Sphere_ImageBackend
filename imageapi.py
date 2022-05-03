@@ -7,6 +7,8 @@ from celery import Celery
 from flask import Flask, jsonify, request, abort, make_response, send_file
 from flask_cors import CORS
 from flask_restful import Api
+from werkzeug.utils import safe_join
+
 from libraries.image_classification.FeatureExtraction import FeatureExtraction
 from libraries.image_classification.ImageDownloader import ImageDownloader
 from libraries.image_classification.Training import Training
@@ -16,8 +18,10 @@ from libraries.image_classification.constants import GoldStandardConstants as gs
 from libraries.image_classification.utils import Constants, PrintHelper, \
     DatabaseJSONStructure, DatabaseFunctions, Response, prediction_images_dir, CheckEnvironment
 
-ROOT_DIR = os.path.dirname(os.path.abspath(os.path.join(__file__, os.pardir, os.pardir)))
-gold_standards_dir = os.path.join(ROOT_DIR, "backend", "data", "resources", "added_gold_standards")
+ROOT_DIR = os.path.dirname(os.path.abspath(
+    os.path.join(__file__, os.pardir, os.pardir)))
+gold_standards_dir = os.path.join(
+    ROOT_DIR, "backend", "data", "resources", "added_gold_standards")
 
 sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
@@ -29,7 +33,8 @@ ENVIRONMENT = "dev"
 
 set_environment = CheckEnvironment(ENVIRONMENT)
 
-CELERY_BROKER_URL = env.get('CELERY_BROKER_URL', 'redis://' + set_environment.get_celery_environment() + ':6379/0'),
+CELERY_BROKER_URL = env.get('CELERY_BROKER_URL', 'redis://' +
+                            set_environment.get_celery_environment() + ':6379/0'),
 CELERY_RESULT_BACKEND = env.get('CELERY_RESULT_BACKEND',
                                 'redis://' + set_environment.get_celery_environment() + ':6379/0')
 
@@ -87,7 +92,7 @@ def image_transfer_and_training():
                                                   modelConstants.mm_model_saved_name, save_name_for_model)
         if same_name is not None:
             return Response().create_failure_response(
-                    "A model with the same name is already present. Please use a different name")
+                "A model with the same name is already present. Please use a different name")
 
         if selected_model_name is not "VGG16" and selected_model_name is not "VGG19" and selected_model_name is not "ResNet50" and selected_model_name is not "Xception" and selected_model_name is not "Inceptionv3":
             models_terms = DatabaseFunctions().find_item(modelConstants.database, modelConstants.collection,
@@ -101,43 +106,44 @@ def image_transfer_and_training():
         hash_digest = classes_hash_key.hexdigest()
         hash_digest = save_name_for_model + "###" + hash_digest
         models_result = DatabaseFunctions().find_item(
-                modelConstants.database,
-                modelConstants.collection,
-                modelConstants.mm_model_hash, hash_digest)
+            modelConstants.database,
+            modelConstants.collection,
+            modelConstants.mm_model_hash, hash_digest)
 
         if models_result is None:
             PrintHelper().info_print('Model was not found, continue with the processing')
 
             DatabaseFunctions().insert_item(
-                    database_name=modelConstants.database,
-                    collection_name=modelConstants.collection,
-                    items_to_insert=DatabaseJSONStructure.insert_new_model(dataset_string, hash_digest,
-                                                                           selected_model_name,
-                                                                           model_save_name=save_name_for_model))
+                database_name=modelConstants.database,
+                collection_name=modelConstants.collection,
+                items_to_insert=DatabaseJSONStructure.insert_new_model(dataset_string, hash_digest,
+                                                                       selected_model_name,
+                                                                       model_save_name=save_name_for_model))
 
             status, number_of_samples, number_of_classes = ImageDownloader().transfer_datasets_and_start_training(
-                    dataset_items, hash_digest)
+                dataset_items, hash_digest)
             if status:
-                start_background_training.delay(selected_model_name, hash_digest, number_of_classes, number_of_samples)
+                start_background_training.delay(
+                    selected_model_name, hash_digest, number_of_classes, number_of_samples)
 
                 return Response().create_success_response('',
                                                           'Training Started on selected Model')
             else:
                 return Response().create_failure_response(
-                        'An already trained or currently in training model is already '
-                        'present in the database. Please check "View and Validate" tab to '
-                        'view and test this model')
+                    'An already trained or currently in training model is already '
+                    'present in the database. Please check "View and Validate" tab to '
+                    'view and test this model')
         else:
             PrintHelper().warning_print('Model already present')
             return Response().create_failure_response(
-                    'An already trained or currently in training model is already '
-                    'present in the database. Please check "View and Validate" tab to'
-                    ' view and test this model')
+                'An already trained or currently in training model is already '
+                'present in the database. Please check "View and Validate" tab to'
+                ' view and test this model')
 
     except Exception as e:
         PrintHelper().failure_print(e)
         return Response.create_failure_response(
-                'Exception Occured: image_transfer_and_training' + str(e))
+            'Exception Occured: image_transfer_and_training' + str(e))
 
 
 @app.route('/sphere/api/v1/image/getDatasets', methods=['GET'])
@@ -234,14 +240,15 @@ def start_predictions():
             filename = upload.filename.rsplit("/")[0]
             PrintHelper.info_print("Uploaded: ", filename)
             destination_main = os.path.dirname(
-                    os.path.realpath(__file__)) + prediction_images_dir + '/'
+                os.path.realpath(__file__)) + prediction_images_dir + '/'
             destination = destination_main + model_name + '/'
             Constants.directory_validation(destination)
             upload.save(destination + filename)
             image_paths = destination_main
             image_count = + 1
 
-        feature_extraction = FeatureExtraction(model_name, image_paths, image_count)
+        feature_extraction = FeatureExtraction(
+            model_name, image_paths, image_count)
         predictions = feature_extraction.get_predictions()
 
         # converting the complex tuple structre into javascript friendly json object
@@ -251,7 +258,7 @@ def start_predictions():
             result_outer = []
             for items in item:
                 result_inner = {
-                    "class"      : items[0],
+                    "class": items[0],
                     "description": items[1],
                     "probability": str(items[2])
                 }
@@ -263,7 +270,7 @@ def start_predictions():
             image_file_name = image_file.filename.rsplit("/")[0]
 
             final_prediction_result = {
-                "filename"   : image_file_name,
+                "filename": image_file_name,
                 "predictions": result_outer
             }
             prediction_array.append(final_prediction_result)
@@ -302,9 +309,9 @@ def download_files():
     filetype = request.json['type']
     path = request.json['path']
     if filetype == 'gold':
-        return send_file(os.path.dirname(os.path.realpath(__file__)) + path)
+        return send_file(os.path.dirname(safe_join(os.path.realpath(__file__)), path))
     else:
-        return send_file(os.path.dirname(os.path.realpath(__file__)) + "/libraries/image_classification" + path)
+        return send_file(os.path.dirname(safe_join(os.path.realpath(__file__)), "/libraries/image_classification", path))
 
 
 """
@@ -357,7 +364,7 @@ def not_found(error):
     """
     PrintHelper().failure_print('404 Error')
     return make_response(
-            jsonify({Constants.status: Constants.false, Constants.error_message: 'Not found'}), 404)
+        jsonify({Constants.status: Constants.false, Constants.error_message: 'Not found'}), 404)
 
 
 @app.errorhandler(400)
@@ -369,7 +376,7 @@ def invalid_data(error):
     """
     PrintHelper().failure_print('400 Error')
     return make_response(
-            jsonify({Constants.status: Constants.false, Constants.error_message: 'Invalid data'}), 400)
+        jsonify({Constants.status: Constants.false, Constants.error_message: 'Invalid data'}), 400)
 
 
 @app.errorhandler(403)
@@ -380,8 +387,9 @@ def invalid_request(error):
     """
     PrintHelper().failure_print('403 Error')
     return make_response(
-            jsonify({Constants.status: Constants.false, Constants.error_message: 'Invalid request'}),
-            403)
+        jsonify({Constants.status: Constants.false,
+                Constants.error_message: 'Invalid request'}),
+        403)
 
 
 @app.route('/sphere/api/v1/dbreset/<db_name>', methods=['GET'])
