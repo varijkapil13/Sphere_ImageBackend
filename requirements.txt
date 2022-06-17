@@ -31,7 +31,7 @@ mock==2.0.0
 mongoengine==0.13.0
 murmurhash==0.26.4
 nltk==3.2.4
-numpy==1.13.0
+numpy==1.21.0
 olefile==0.44
 packaging==16.8
 pathlib==1.0.1
